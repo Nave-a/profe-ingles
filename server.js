@@ -32,7 +32,11 @@ if (!GEMINI_API_KEY) {
 }
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+// Forzar el uso de la versión v1beta de la API
+const model = genAI.getGenerativeModel({ 
+    model: "gemini-1.0-pro",
+    apiVersion: "v1beta"  // Esta es la clave
+});
 
 // --- Endpoint /chat ---
 app.post('/chat', async (req, res) => {
