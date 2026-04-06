@@ -35,8 +35,15 @@ if (!GEMINI_API_KEY) {
     process.exit(1);
 }
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-// Usamos gemini-1.5-flash (rápido y económico)
-const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
+
+// Configuración más explícita
+const model = genAI.getGenerativeModel({
+    model: "gemini-1.0-pro",
+    generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 150,
+    }
+});
 
 // --- Endpoint /chat ---
 app.post('/chat', async (req, res) => {
