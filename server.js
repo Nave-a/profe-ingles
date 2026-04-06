@@ -4,7 +4,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const app = express();
 app.use(express.json());
 
-// --- Health check ---
+// --- Health check (siempre responde) ---
 app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
@@ -24,34 +24,23 @@ Reglas:
 4. Mantén tus respuestas muy cortas (máximo 2-3 frases).
 5. Responde siempre en inglés.`;
 
-// --- Configuración de Gemini con gemini-1.0-pro (el más compatible) ---
+// --- Configuración de Gemini (con manejo de errores) ---
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-if (!GEMINI_API_KEY) {
-    console.error("ERROR: La variable de entorno GEMINI_API_KEY no está configurada.");
-    process.exit(1);
-}
 
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-// Forzar el uso de la versión v1beta de la API
-const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.0-pro",
-    apiVersion: "v1beta"  // Esta es la clave
-});
-
-// --- Endpoint /chat ---
-app.post('/chat', async (req, res) => {
-    const { userMessage, conversationHistory } = req.body;
-    
-    if (!userMessage) {
-        return res.status(400).json({ error: "Mensaje de usuario requerido" });
+// Función para obtener respuesta de Gemini (con fallback)
+async function getGeminiResponse(userMessage, history) {
+    if (!GEMINI_API_KEY) {
+        return "I need my API key to work! Please check the configuration.";
     }
     
     try {
-        // Construir el prompt completo con historial
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
         let fullPrompt = PROMPT_PROFESOR + "\n\n";
         
-        if (conversationHistory && conversationHistory.length > 0) {
-            for (const msg of conversationHistory) {
+        if (history && history.length > 0) {
+            for (const msg of history) {
                 const role = msg.role === 'user' ? 'Estudiante' : 'Oliver';
                 fullPrompt += `${role}: ${msg.content}\n`;
             }
@@ -60,16 +49,41 @@ app.post('/chat', async (req, res) => {
         fullPrompt += `Estudiante: ${userMessage}\nOliver:`;
         
         const result = await model.generateContent(fullPrompt);
-        const reply = result.response.text();
-        
+        return result.response.text();
+    } catch (error) {
+        console.error("Error específico de Gemini:", error.message);
+        // Devolver un mensaje amigable en lugar de fallar
+        return "I'm having technical difficulties connecting to my AI brain. Please try again in a moment! - Professor Oliver";
+    }
+}
+
+// --- Endpoint /chat (nunca falla, siempre responde) ---
+app.post('/chat', async (req, res) => {
+    const { userMessage, conversationHistory } = req.body;
+    
+    if (!userMessage) {
+        return res.status(400).json({ error: "Mensaje de usuario requerido" });
+    }
+    
+    try {
+        const reply = await getGeminiResponse(userMessage, conversationHistory);
         res.json({ reply: reply });
     } catch (error) {
-        console.error("Error llamando a Gemini:", error.message);
-        res.status(500).json({ 
-            error: "Professor Oliver is having tea. Try again!",
-            details: error.message 
-        });
+        // Esto nunca debería ejecutarse, pero por si acaso
+        console.error("Error catastrófico:", error);
+        res.json({ reply: "Professor Oliver is taking a short break. Try again! - Oliver" });
     }
+});
+
+// Manejar errores no capturados (evita que el servidor se caiga)
+process.on('uncaughtException', (error) => {
+    console.error('Error no capturado:', error);
+    // No salimos del proceso
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Promesa rechazada no manejada:', reason);
+    // No salimos del proceso
 });
 
 const PORT = process.env.PORT || 3000;
