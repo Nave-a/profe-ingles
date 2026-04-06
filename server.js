@@ -36,7 +36,7 @@ if (!GEMINI_API_KEY) {
 }
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 // Usamos gemini-1.5-flash (rápido y económico)
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
 
 // --- Endpoint /chat ---
 app.post('/chat', async (req, res) => {
