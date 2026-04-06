@@ -1,51 +1,66 @@
 const express = require('express');
-const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 app.use(express.json());
 
-// El PROMPT del profesor británico amigable (optimizado para DeepSeek)
-const PROFESSOR_PROMPT = `Eres Oliver, profesor de inglés británico, amigable y paciente.
+// --- El prompt del profesor Oliver (británico, amigable) ---
+const PROMPT_PROFESOR = `Eres Oliver, un profesor de inglés británico, muy amigable y paciente. Tu misión es enseñar inglés conversacional.
 
-REGLAS:
-1. Si hay error: di "Good try! Say: [frase correcta] because [razón corta]. Try again?"
-2. Si acierta: "Brilliant!" o "Well done!" y sigue con nueva pregunta
-3. Usa expresiones británicas: "spot on", "let's crack on", "fancy trying?"
-4. Para alumnos de Chile: puedes usar una palabra en español si están muy perdidos
-5. NUNCA te frustres
+Reglas:
+1. Si el estudiante comete un error gramatical o de vocabulario, primero dile algo positivo ("Good try!", "Almost there!"), luego da la frase correcta ("You should say: ...") y explica brevemente el error en UNA frase. Termina pidiéndole que lo intente de nuevo.
+2. Si el estudiante acierta, muéstrate entusiasta ("Brilliant!", "Well done, mate!") y haz una nueva pregunta relacionada para continuar la conversación.
+3. Usa expresiones británicas amigables como "spot on", "let's crack on", "fancy trying?".
+4. Si el estudiante se bloquea, puedes usar una palabra en español para ayudarle, pero anímalo siempre a pensar en inglés.
+5. Mantén tus respuestas concisas (máximo 2-3 frases) para que la conversación sea fluida.
 
-Empieza: preséntate en 2 frases y pregunta "What's your name?"`;
+Ejemplo de interacción:
+Estudiante: "I go to cinema yesterday."
+Tú: "Good attempt! In British English, we'd say 'I WENT to the cinema yesterday' because 'yesterday' means past tense. Can you try that again for me? Brilliant."`;
 
-// Configurar DeepSeek
-const client = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: "https://api.deepseek.com"
-});
+// --- Configuración de Gemini ---
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+    console.error("ERROR: La variable de entorno GEMINI_API_KEY no está configurada.");
+    process.exit(1);
+}
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+// --- Endpoint /chat ---
 app.post('/chat', async (req, res) => {
-  const { userMessage, conversationHistory } = req.body;
-  
-  try {
-    const response = await client.chat.completions.create({
-      model: "deepseek-chat",
-      messages: [
-        { role: "system", content: PROFESSOR_PROMPT },
-        ...conversationHistory,
-        { role: "user", content: userMessage }
-      ],
-      temperature: 0.7,
-      max_tokens: 150
+    const { userMessage, conversationHistory } = req.body;
+
+    // Construir el historial para Gemini
+    let chat = model.startChat({
+        history: (conversationHistory || []).map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }]
+        })),
+        generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 150,
+        }
     });
-    
-    res.json({ 
-      reply: response.choices[0].message.content 
-    });
-    
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Professor Oliver is having tea. Try again!" });
-  }
+
+    // Si no hay historial, incluimos el prompt del sistema como primera instrucción
+    if (!conversationHistory || conversationHistory.length === 0) {
+        await model.generateContent(PROMPT_PROFESOR);
+        chat = model.startChat({
+            history: [{ role: 'model', parts: [{ text: PROMPT_PROFESOR }] }],
+            generationConfig: { temperature: 0.7, maxOutputTokens: 150 }
+        });
+    }
+
+    try {
+        const result = await chat.sendMessage(userMessage);
+        const reply = result.response.text();
+        res.json({ reply: reply });
+    } catch (error) {
+        console.error("Error llamando a Gemini:", error);
+        res.status(500).json({ error: "Professor Oliver is having tea. Try again!" });
+    }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Professor Oliver ready on port ${PORT}`));
+app.listen(PORT, () => console.log(`Professor Oliver with Gemini ready on port ${PORT}`));

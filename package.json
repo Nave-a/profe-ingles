@@ -1,13 +1,13 @@
 {
-  "name": "profesor-ingles",
+  "name": "profe-ingles",
   "version": "1.0.0",
-  "description": "AI English tutor with British accent",
+  "description": "AI English tutor with British accent using Gemini",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "openai": "^4.20.0"
+    "@google/generative-ai": "^0.21.0"
   }
 }
