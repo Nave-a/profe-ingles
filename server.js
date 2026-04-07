@@ -1,94 +1,73 @@
 const express = require('express');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const Groq = require('groq-sdk');
 
 const app = express();
 app.use(express.json());
 
-// --- Health check (siempre responde) ---
-app.get('/health', (req, res) => {
-    res.status(200).send('OK');
-});
+// --- Health check ---
+app.get('/health', (req, res) => res.status(200).send('OK'));
 
 // --- Ruta de prueba ---
-app.get('/test', (req, res) => {
-    res.json({ message: "Servidor funcionando correctamente" });
-});
+app.get('/test', (req, res) => res.json({ message: "Servidor funcionando" }));
 
-// --- Prompt del profesor Oliver ---
-const PROMPT_PROFESOR = `Eres Oliver, un profesor de inglés británico, muy amigable y paciente. Tu misión es enseñar inglés conversacional.
-
-Reglas:
-1. Si el estudiante comete un error, primero dile algo positivo, luego da la frase correcta y explica brevemente el error en UNA frase.
-2. Si acierta, muéstrate entusiasta y haz una nueva pregunta.
-3. Usa expresiones británicas como "brilliant", "spot on", "well done".
-4. Mantén tus respuestas muy cortas (máximo 2-3 frases).
+// --- Prompt del profesor Oliver (británico, amigable) ---
+const PROMPT_PROFESOR = `Eres Oliver, un profesor de inglés británico, muy amigable y paciente. Reglas:
+1. Si hay error: di "Good try! Say: [frase correcta] because [razón corta]. Try again?"
+2. Si acierta: "Brilliant!" o "Well done!" y haz nueva pregunta.
+3. Usa expresiones británicas como "spot on", "let's crack on".
+4. Respuestas muy cortas (máximo 2-3 frases).
 5. Responde siempre en inglés.`;
 
-// --- Configuración de Gemini (con manejo de errores) ---
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-// Función para obtener respuesta de Gemini (con fallback)
-async function getGeminiResponse(userMessage, history) {
-    if (!GEMINI_API_KEY) {
-        return "I need my API key to work! Please check the configuration.";
-    }
-    
-    try {
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        
-        let fullPrompt = PROMPT_PROFESOR + "\n\n";
-        
-        if (history && history.length > 0) {
-            for (const msg of history) {
-                const role = msg.role === 'user' ? 'Estudiante' : 'Oliver';
-                fullPrompt += `${role}: ${msg.content}\n`;
-            }
-        }
-        
-        fullPrompt += `Estudiante: ${userMessage}\nOliver:`;
-        
-        const result = await model.generateContent(fullPrompt);
-        return result.response.text();
-    } catch (error) {
-        console.error("Error específico de Gemini:", error.message);
-        // Devolver un mensaje amigable en lugar de fallar
-        return "I'm having technical difficulties connecting to my AI brain. Please try again in a moment! - Professor Oliver";
-    }
+// --- Configuración de Groq ---
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+if (!GROQ_API_KEY) {
+    console.error("ERROR: GROQ_API_KEY no configurada");
+    process.exit(1);
 }
 
-// --- Endpoint /chat (nunca falla, siempre responde) ---
+const groq = new Groq({ apiKey: GROQ_API_KEY });
+
+// --- Endpoint /chat ---
 app.post('/chat', async (req, res) => {
     const { userMessage, conversationHistory } = req.body;
     
     if (!userMessage) {
-        return res.status(400).json({ error: "Mensaje de usuario requerido" });
+        return res.status(400).json({ error: "Mensaje requerido" });
     }
     
     try {
-        const reply = await getGeminiResponse(userMessage, conversationHistory);
+        const messages = [
+            { role: "system", content: PROMPT_PROFESOR }
+        ];
+        
+        if (conversationHistory && conversationHistory.length > 0) {
+            for (const msg of conversationHistory) {
+                messages.push({
+                    role: msg.role === 'user' ? 'user' : 'assistant',
+                    content: msg.content
+                });
+            }
+        }
+        
+        messages.push({ role: "user", content: userMessage });
+        
+        const completion = await groq.chat.completions.create({
+            messages: messages,
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.7,
+            max_tokens: 150
+        });
+        
+        const reply = completion.choices[0].message.content;
         res.json({ reply: reply });
     } catch (error) {
-        // Esto nunca debería ejecutarse, pero por si acaso
-        console.error("Error catastrófico:", error);
-        res.json({ reply: "Professor Oliver is taking a short break. Try again! - Oliver" });
+        console.error("Error:", error);
+        res.status(500).json({ error: "Professor Oliver is having tea. Try again!" });
     }
-});
-
-// Manejar errores no capturados (evita que el servidor se caiga)
-process.on('uncaughtException', (error) => {
-    console.error('Error no capturado:', error);
-    // No salimos del proceso
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Promesa rechazada no manejada:', reason);
-    // No salimos del proceso
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Professor Oliver with Gemini ready on port ${PORT}`);
+    console.log(`Professor Oliver with Groq ready on port ${PORT}`);
     console.log(`Health check: /health`);
-    console.log(`Test endpoint: /test`);
 });
