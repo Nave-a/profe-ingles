@@ -1,0 +1,68 @@
+{
+    "beginner": [
+        {
+            "id": "b1",
+            "question": "How do you say 'Hola' in English?",
+            "answer": "hello",
+            "tip": "It's a common greeting!"
+        },
+        {
+            "id": "b2",
+            "question": "Translate: 'Yo soy de Chile'",
+            "answer": "i am from chile",
+            "tip": "Use 'I am' for 'Yo soy'"
+        },
+        {
+            "id": "b3",
+            "question": "What is 'gracias' in English?",
+            "answer": "thank you",
+            "tip": "Always good to be polite!"
+        },
+        {
+            "id": "b4",
+            "question": "Say 'Buenos días' in English",
+            "answer": "good morning",
+            "tip": "Used before noon"
+        },
+        {
+            "id": "b5",
+            "question": "How do you say 'Perro'?",
+            "answer": "dog",
+            "tip": "Man's best friend!"
+        }
+    ],
+    "intermediate": [
+        {
+            "id": "i1",
+            "question": "Correct this: 'She go to school yesterday'",
+            "answer": "she went to school yesterday",
+            "tip": "Past tense of 'go' is 'went'"
+        },
+        {
+            "id": "i2",
+            "question": "Translate: 'Voy a comer pizza'",
+            "answer": "i am going to eat pizza",
+            "tip": "Use 'going to' for future plans"
+        },
+        {
+            "id": "i3",
+            "question": "What's wrong? 'I have 20 years'",
+            "answer": "i am 20 years old",
+            "tip": "In English, we say 'I am' for age"
+        }
+    ],
+    "advanced": [
+        {
+            "id": "a1",
+            "question": "Correct: 'Had I known, I would have came earlier'",
+            "answer": "had i known, i would have come earlier",
+            "tip": "Past participle of 'come' is 'come'"
+        },
+        {
+            "id": "a2",
+            "question": "What's the passive voice of: 'They built this house in 1990'",
+            "answer": "this house was built in 1990",
+            "tip": "Passive: object + was/were + past participle"
+        }
+    ]
+}

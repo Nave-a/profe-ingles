@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Professor Oliver - Chat</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app-container">
+    <div class="chat-card" style="flex: 2;">
+        <div class="card-header">
+            <h1>🇬🇧 Professor Oliver 🇬🇧</h1>
+            <p>Speak or type • Your British English tutor</p>
+        </div>
+        <div class="messages-area" id="messagesArea">
+            <div class="message bot-message">
+                <div class="message-sender">🇬🇧 Professor Oliver</div>
+                <div class="message-bubble">
+                    Hello! I'm Oliver, your British English tutor.<br>
+                    Speak or type to me. What's your name? 🇬🇧
+                </div>
+            </div>
+        </div>
+        <div class="input-area">
+            <button class="mic-button" id="micButton">🎤</button>
+            <input type="text" id="userInput" placeholder="Type or speak in English..." autocomplete="off">
+            <button id="sendBtn">Send ✨</button>
+        </div>
+        <div class="status-bar" id="statusBar">✅ Ready • Click the microphone to speak</div>
+    </div>
+    <div class="sidebar">
+        <div class="nav-bar">
+            <a href="index.html" class="nav-link">🏠 Home</a>
+            <a href="chat.html" class="nav-link active">💬 Chat</a>
+            <a href="exercises.html" class="nav-link">📝 Exercises</a>
+        </div>
+        <div class="score-card">
+            <div>🏆 Your Score</div>
+            <div class="score" id="score">0</div>
+            <div>points</div>
+        </div>
+        <div class="exercise-card">
+            <h3>💡 Tip of the day</h3>
+            <div id="tipText">Use "please" and "thank you" - it's very British! 🇬🇧</div>
+        </div>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/voice.js"></script>
+<script>
+    // Elementos
+    const messagesArea = document.getElementById('messagesArea');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusBar = document.getElementById('statusBar');
+    const micButton = document.getElementById('micButton');
+    const scoreSpan = document.getElementById('score');
+    
+    let conversationHistory = [];
+    let score = 0;
+    
+    // Cargar puntuación
+    async function loadScore() {
+        score = StorageModule.loadScore();
+        scoreSpan.textContent = score;
+    }
+    
+    function updateScore(newScore) {
+        score = newScore;
+        scoreSpan.textContent = score;
+        StorageModule.saveScore(score);
+    }
+    
+    function addMessage(role, text, skipSpeak = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
+        const sender = document.createElement('div');
+        sender.className = 'message-sender';
+        sender.innerText = role === 'user' ? '👤 You' : '🇬🇧 Professor Oliver';
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerText = text;
+        messageDiv.appendChild(sender);
+        messageDiv.appendChild(bubble);
+        messagesArea.appendChild(messageDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        if (role === 'bot' && !skipSpeak) VoiceModule.speak(text);
+    }
+    
+    let typingIndicator = null;
+    function showTyping() {
+        if (typingIndicator) return;
+        typingIndicator = document.createElement('div');
+        typingIndicator.className = 'message bot-message';
+        typingIndicator.innerHTML = `<div class="message-sender">🇬🇧 Professor Oliver</div><div class="typing-indicator"><span></span><span></span><span></span></div>`;
+        messagesArea.appendChild(typingIndicator);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+    
+    function hideTyping() {
+        if (typingIndicator) { typingIndicator.remove(); typingIndicator = null; }
+    }
+    
+    async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
+        
+        sendBtn.disabled = true;
+        userInput.disabled = true;
+        micButton.disabled = true;
+        statusBar.textContent = '🤔 Professor Oliver is thinking...';
+        
+        addMessage('user', message);
+        conversationHistory.push({ role: 'user', content: message });
+        userInput.value = '';
+        showTyping();
+        
+        try {
+            const response = await fetch(CONFIG.API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userMessage: message, conversationHistory: conversationHistory.slice(0, -1) })
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            const reply = data.reply || "Professor Oliver is having tea. Try again!";
+            hideTyping();
+            addMessage('bot', reply);
+            conversationHistory.push({ role: 'assistant', content: reply });
+            statusBar.textContent = '✅ Ready';
+        } catch (error) {
+            hideTyping();
+            addMessage('bot', "Connection error. Please try again! - Oliver");
+            statusBar.textContent = '⚠️ Connection error';
+        } finally {
+            sendBtn.disabled = false;
+            userInput.disabled = false;
+            micButton.disabled = false;
+            userInput.focus();
+        }
+    }
+    
+    // Inicializar voz
+    VoiceModule.initRecognition(
+        (transcript) => {
+            userInput.value = transcript;
+            statusBar.textContent = `✅ You said: "${transcript}"`;
+            setTimeout(() => sendMessage(), 500);
+        },
+        (error) => {
+            console.error('Voice error:', error);
+            statusBar.textContent = `❌ Voice error: ${error}`;
+            setTimeout(() => { statusBar.textContent = '✅ Ready'; }, 3000);
+        }
+    );
+    
+    micButton.addEventListener('click', () => {
+        if (VoiceModule.isListening()) {
+            VoiceModule.stopListening();
+            micButton.classList.remove('recording');
+            micButton.textContent = '🎤';
+        } else {
+            VoiceModule.startListening();
+            micButton.classList.add('recording');
+            micButton.textContent = '🔴';
+            statusBar.textContent = '🎤 Listening... Speak now!';
+        }
+    });
+    
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+    
+    // Inicializar
+    loadScore();
+    userInput.focus();
+</script>
+</body>
+</html>

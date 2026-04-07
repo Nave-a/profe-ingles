@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Professor Oliver - Ejercicios</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="app-container">
+    <div class="chat-card" style="flex: 2;">
+        <div class="card-header">
+            <h1>📝 Interactive Exercises</h1>
+            <p>Practice and earn points!</p>
+        </div>
+        <div class="messages-area" id="messagesArea">
+            <div class="message bot-message">
+                <div class="message-sender">🇬🇧 Professor Oliver</div>
+                <div class="message-bubble">
+                    Welcome to the exercise area!<br>
+                    Select a level and click "New Exercise" to start! 🎯
+                </div>
+            </div>
+        </div>
+        <div class="input-area">
+            <button class="mic-button" id="micButton">🎤</button>
+            <input type="text" id="userInput" placeholder="Type or speak your answer..." autocomplete="off">
+            <button id="sendBtn">Submit Answer ✨</button>
+        </div>
+        <div class="status-bar" id="statusBar">✅ Ready</div>
+    </div>
+    <div class="sidebar">
+        <div class="nav-bar">
+            <a href="index.html" class="nav-link">🏠 Home</a>
+            <a href="chat.html" class="nav-link">💬 Chat</a>
+            <a href="exercises.html" class="nav-link active">📝 Exercises</a>
+        </div>
+        <div class="score-card">
+            <div>🏆 Your Score</div>
+            <div class="score" id="score">0</div>
+            <div>points</div>
+        </div>
+        <div>
+            <h3>📚 Level</h3>
+            <div class="level-buttons">
+                <button class="level-btn" data-level="beginner">🌱 Beginner</button>
+                <button class="level-btn active" data-level="intermediate">⭐ Intermediate</button>
+                <button class="level-btn" data-level="advanced">🚀 Advanced</button>
+            </div>
+        </div>
+        <div class="exercise-card">
+            <h3>🎯 Current Exercise</h3>
+            <div class="exercise-text" id="exerciseText">
+                Click "New Exercise" to start!
+            </div>
+            <button class="exercise-btn" id="newExerciseBtn">🔄 New Exercise</button>
+        </div>
+        <div class="exercise-card">
+            <h3>📊 Your Progress</h3>
+            <div id="statsText">Complete exercises to see your stats!</div>
+        </div>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/voice.js"></script>
+<script>
+    const messagesArea = document.getElementById('messagesArea');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusBar = document.getElementById('statusBar');
+    const micButton = document.getElementById('micButton');
+    const scoreSpan = document.getElementById('score');
+    const exerciseTextDiv = document.getElementById('exerciseText');
+    const statsTextDiv = document.getElementById('statsText');
+    
+    let score = 0;
+    let currentLevel = 'intermediate';
+    let currentExercise = null;
+    let exercises = { beginner: [], intermediate: [], advanced: [] };
+    
+    // Cargar ejercicios
+    async function loadExercises() {
+        try {
+            const response = await fetch('data/exercises.json');
+            exercises = await response.json();
+        } catch (error) {
+            console.error('Error loading exercises:', error);
+        }
+    }
+    
+    function addMessage(role, text, skipSpeak = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
+        const sender = document.createElement('div');
+        sender.className = 'message-sender';
+        sender.innerText = role === 'user' ? '👤 You' : '🇬🇧 Professor Oliver';
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerText = text;
+        messageDiv.appendChild(sender);
+        messageDiv.appendChild(bubble);
+        messagesArea.appendChild(messageDiv);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        if (role === 'bot' && !skipSpeak) VoiceModule.speak(text);
+    }
+    
+    function loadNewExercise() {
+        const levelExercises = exercises[currentLevel];
+        if (!levelExercises || levelExercises.length === 0) {
+            exerciseTextDiv.innerHTML = 'No exercises available for this level.';
+            return;
+        }
+        const randomIndex = Math.floor(Math.random() * levelExercises.length);
+        currentExercise = levelExercises[randomIndex];
+        exerciseTextDiv.innerHTML = `<strong>📝 ${currentExercise.question}</strong><br><small style="color:#64748b">💡 ${currentExercise.tip}</small>`;
+        addMessage('bot', `📚 EXERCISE (${currentLevel}): ${currentExercise.question}`, true);
+        VoiceModule.speak(`Exercise. ${currentExercise.question}`);
+    }
+    
+    async function checkAnswer() {
+        if (!currentExercise) {
+            addMessage('bot', 'Click "New Exercise" first!');
+            return;
+        }
+        
+        const userAnswer = userInput.value.trim();
+        if (!userAnswer) {
+            addMessage('bot', 'Please type or speak your answer!');
+            return;
+        }
+        
+        const normalizedAnswer = userAnswer.toLowerCase().trim().replace(/[^\w\s]/g, '');
+        const normalizedCorrect = currentExercise.answer.toLowerCase().trim().replace(/[^\w\s]/g, '');
+        
+        if (normalizedAnswer === normalizedCorrect || normalizedAnswer.includes(normalizedCorrect) || normalizedCorrect.includes(normalizedAnswer)) {
+            const points = CONFIG.POINTS[currentLevel];
+            score += points;
+            StorageModule.saveScore(score);
+            scoreSpan.textContent = score;
+            
+            await StorageModule.saveExercise({
+                id: currentExercise.id,
+                level: currentLevel,
+                question: currentExercise.question,
+                correct: true
+            });
+            
+            addMessage('bot', `✅ EXCELLENT! That's correct! +${points} points! ${currentExercise.tip}`);
+            VoiceModule.speak(`Excellent! That's correct! You earned ${points} points.`);
+            loadNewExercise();
+            loadStats();
+        } else {
+            addMessage('bot', `❌ Good try! The correct answer is: "${currentExercise.answer}". ${currentExercise.tip} Try again!`);
+            VoiceModule.speak(`Good try. The correct answer is ${currentExercise.answer}. Try again.`);
+        }
+        
+        userInput.value = '';
+    }
+    
+    async function loadStats() {
+        const stats = await StorageModule.getStats();
+        statsTextDiv.innerHTML = `
+            <div style="margin-bottom: 10px;">✅ Total: ${stats.totalExercises}</div>
+            <div style="margin-bottom: 5px;">🌱 Beginner: ${stats.byLevel.beginner}</div>
+            <div style="margin-bottom: 5px;">⭐ Intermediate: ${stats.byLevel.intermediate}</div>
+            <div>🚀 Advanced: ${stats.byLevel.advanced}</div>
+        `;
+    }
+    
+    // Inicializar
+    async function init() {
+        await StorageModule.initDB();
+        score = StorageModule.loadScore();
+        scoreSpan.textContent = score;
+        currentLevel = StorageModule.loadLevel();
+        
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            if (btn.dataset.level === currentLevel) btn.classList.add('active');
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLevel = btn.dataset.level;
+                StorageModule.saveLevel(currentLevel);
+                loadNewExercise();
+            });
+        });
+        
+        await loadExercises();
+        loadNewExercise();
+        await loadStats();
+    }
+    
+    VoiceModule.initRecognition(
+        (transcript) => {
+            userInput.value = transcript;
+            statusBar.textContent = `✅ You said: "${transcript}"`;
+            setTimeout(() => checkAnswer(), 300);
+        },
+        (error) => {
+            console.error('Voice error:', error);
+        }
+    );
+    
+    micButton.addEventListener('click', () => {
+        if (VoiceModule.isListening()) {
+            VoiceModule.stopListening();
+            micButton.classList.remove('recording');
+            micButton.textContent = '🎤';
+        } else {
+            VoiceModule.startListening();
+            micButton.classList.add('recording');
+            micButton.textContent = '🔴';
+            statusBar.textContent = '🎤 Listening... Speak your answer!';
+        }
+    });
+    
+    document.getElementById('newExerciseBtn').addEventListener('click', loadNewExercise);
+    sendBtn.addEventListener('click', checkAnswer);
+    userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') checkAnswer(); });
+    
+    init();
+</script>
+</body>
+</html>

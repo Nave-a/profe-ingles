@@ -1,0 +1,382 @@
+/* ========================================
+   PROFESOR OLIVER - ESTILOS PRINCIPALES
+   ======================================== */
+
+/* Variables globales */
+:root {
+    --primary-dark: #1e3c72;
+    --primary: #2a5298;
+    --primary-light: #667eea;
+    --secondary: #764ba2;
+    --accent: #ffd700;
+    --success: #10b981;
+    --error: #ef4444;
+    --warning: #f59e0b;
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+    --bg-light: #f8fafc;
+    --bg-white: #ffffff;
+    --border: #e2e8f0;
+    --shadow: 0 10px 25px rgba(0,0,0,0.1);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.3);
+    --radius: 32px;
+    --radius-md: 20px;
+    --radius-sm: 12px;
+}
+
+/* Reset y base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Contenedor principal */
+.app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Tarjetas */
+.card {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+/* Header de tarjeta */
+.card-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 20px 24px;
+    text-align: center;
+    border-bottom: 3px solid var(--accent);
+}
+
+.card-header h1 {
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.card-header p {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    margin-top: 5px;
+}
+
+/* Área de mensajes */
+.messages-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: var(--bg-light);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Mensajes */
+.message {
+    display: flex;
+    flex-direction: column;
+    max-width: 85%;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.user-message { align-self: flex-end; }
+.bot-message { align-self: flex-start; }
+
+.message-sender {
+    font-size: 0.7rem;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+.user-message .message-sender { text-align: right; margin-right: 12px; }
+.bot-message .message-sender { margin-left: 12px; }
+
+.message-bubble {
+    padding: 12px 18px;
+    border-radius: 24px;
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.user-message .message-bubble {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.bot-message .message-bubble {
+    background: var(--bg-white);
+    color: var(--text-dark);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+}
+
+/* Indicador de escritura */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 12px 18px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: var(--text-light);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-10px); opacity: 1; }
+}
+
+/* Input area */
+.input-area {
+    padding: 16px 20px;
+    background: var(--bg-white);
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.mic-button {
+    background: var(--error);
+    color: white;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.4rem;
+    transition: all 0.2s;
+}
+
+.mic-button.recording {
+    background: var(--success);
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.input-area input {
+    flex: 1;
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: 40px;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.input-area input:focus {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+}
+
+.input-area button {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 40px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.input-area button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Status bar */
+.status-bar {
+    padding: 10px 20px;
+    background: var(--bg-light);
+    font-size: 0.75rem;
+    color: var(--text-light);
+    text-align: center;
+    border-top: 1px solid var(--border);
+}
+
+.status-bar.listening {
+    background: var(--success);
+    color: white;
+}
+
+.status-bar.error {
+    background: var(--error);
+    color: white;
+}
+
+/* Sidebar */
+.sidebar {
+    flex: 1;
+    min-width: 280px;
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 85vh;
+    overflow-y: auto;
+}
+
+/* Score card */
+.score-card {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+    color: white;
+    padding: 20px;
+    border-radius: var(--radius-md);
+    text-align: center;
+}
+
+.score-card .score {
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+/* Botones de nivel */
+.level-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.level-btn {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    background: var(--border);
+    color: var(--text-light);
+    transition: all 0.2s;
+}
+
+.level-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Exercise card */
+.exercise-card {
+    background: var(--bg-light);
+    padding: 20px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+}
+
+.exercise-text {
+    font-size: 1.1rem;
+    margin: 15px 0;
+    padding: 15px;
+    background: var(--bg-white);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--accent);
+}
+
+/* Botones de ejercicio */
+.exercise-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.exercise-btn.success {
+    background: var(--success);
+}
+
+/* Navegación */
+.nav-bar {
+    display: flex;
+    gap: 5px;
+    background: var(--bg-light);
+    padding: 5px;
+    border-radius: 50px;
+    margin-bottom: 20px;
+}
+
+.nav-link {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text-light);
+    font-weight: 600;
+    border-radius: 40px;
+    transition: all 0.2s;
+}
+
+.nav-link.active {
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--secondary) 100%);
+    color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+    
+    .chat-card, .sidebar {
+        height: 60vh;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+    
+    .mic-button {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+}
