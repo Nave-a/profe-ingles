@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🇬🇧 Professor Oliver - Aprende Inglés Británico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .chat-card {
+            max-width: 900px;
+            width: 100%;
+            height: 85vh;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header estilo británico */
+        .chat-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 24px;
+            text-align: center;
+            border-bottom: 3px solid #ffd700;
+        }
+
+        .chat-header h1 {
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .chat-header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .union-jack {
+            font-size: 28px;
+        }
+
+        /* Área de mensajes */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Estilos de mensajes */
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+        }
+
+        .message-sender {
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+            margin-left: 12px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .user-message .message-sender {
+            text-align: right;
+            margin-right: 12px;
+            margin-left: 0;
+        }
+
+        .message-bubble {
+            padding: 12px 18px;
+            border-radius: 24px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+        }
+
+        .user-message .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message .message-bubble {
+            background: white;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* Indicador de escritura */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 18px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #94a3b8;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-10px); opacity: 1; }
+        }
+
+        /* Input area */
+        .input-area {
+            padding: 16px 20px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 40px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .input-area input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-area button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .input-area button:hover {
+            opacity: 0.9;
+        }
+
+        .input-area button:active {
+            transform: scale(0.97);
+        }
+
+        .input-area button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Status bar */
+        .status-bar {
+            padding: 8px 20px;
+            background: #f1f5f9;
+            font-size: 0.7rem;
+            color: #64748b;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Scroll personalizado */
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 3px;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 3px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .message {
+                max-width: 90%;
+            }
+            .chat-header h1 {
+                font-size: 1.3rem;
+            }
+            .input-area button {
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="chat-card">
+    <div class="chat-header">
+        <h1>
+            <span class="union-jack">🇬🇧</span>
+            Professor Oliver
+            <span class="union-jack">🇬🇧</span>
+        </h1>
+        <p>Your friendly British English tutor • Speak with confidence!</p>
+    </div>
+
+    <div class="messages-area" id="messagesArea">
+        <div class="message bot-message">
+            <div class="message-sender">🇬🇧 Professor Oliver</div>
+            <div class="message-bubble">
+                Hello! I'm Oliver, your British English tutor. <br>
+                What's your name? And how are you today? 🇬🇧
+            </div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Type your message in English..." autocomplete="off">
+        <button id="sendBtn">Send ✨</button>
+    </div>
+    <div class="status-bar" id="statusBar">
+        ✅ Ready to help you improve your English
+    </div>
+</div>
+
+<script>
+    // Configuración
+    const API_URL = 'https://profe-ingles.onrender.com/chat';
+    
+    // Elementos del DOM
+    const messagesArea = document.getElementById('messagesArea');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const statusBar = document.getElementById('statusBar');
+    
+    // Historial de conversación
+    let conversationHistory = [];
+    
+    // Función para agregar un mensaje al chat
+    function addMessage(role, text, isTyping = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
+        
+        const sender = document.createElement('div');
+        sender.className = 'message-sender';
+        sender.innerText = role === 'user' ? '👤 You' : '🇬🇧 Professor Oliver';
+        
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        
+        if (isTyping) {
+            bubble.className = 'typing-indicator';
+            bubble.innerHTML = '<span></span><span></span><span></span>';
+        } else {
+            bubble.innerText = text;
+        }
+        
+        messageDiv.appendChild(sender);
+        messageDiv.appendChild(bubble);
+        messagesArea.appendChild(messageDiv);
+        
+        // Auto-scroll al final
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+        
+        return messageDiv;
+    }
+    
+    // Función para mostrar/ocultar indicador de escritura
+    let typingIndicator = null;
+    function showTypingIndicator() {
+        if (typingIndicator) return;
+        typingIndicator = addMessage('bot', '', true);
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+    
+    function hideTypingIndicator() {
+        if (typingIndicator) {
+            typingIndicator.remove();
+            typingIndicator = null;
+        }
+    }
+    
+    // Función para enviar mensaje
+    async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
+        
+        // Deshabilitar inputs
+        sendBtn.disabled = true;
+        userInput.disabled = true;
+        statusBar.innerText = '🤔 Professor Oliver is thinking...';
+        
+        // Mostrar mensaje del usuario
+        addMessage('user', message);
+        
+        // Guardar en historial
+        conversationHistory.push({ role: 'user', content: message });
+        userInput.value = '';
+        
+        // Mostrar indicador de escritura
+        showTypingIndicator();
+        
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userMessage: message,
+                    conversationHistory: conversationHistory.slice(0, -1)
+                })
+            });
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const data = await response.json();
+            const reply = data.reply || "Professor Oliver is having tea. Try again!";
+            
+            // Ocultar indicador y mostrar respuesta
+            hideTypingIndicator();
+            addMessage('bot', reply);
+            
+            // Guardar respuesta en historial
+            conversationHistory.push({ role: 'assistant', content: reply });
+            
+            statusBar.innerText = '✅ Ready to help you improve your English';
+        } catch (error) {
+            console.error('Error:', error);
+            hideTypingIndicator();
+            addMessage('bot', "I'm having trouble connecting to my brain. Please try again in a moment! - Oliver");
+            statusBar.innerText = '⚠️ Connection error. Check your internet or try again.';
+        } finally {
+            sendBtn.disabled = false;
+            userInput.disabled = false;
+            userInput.focus();
+        }
+    }
+    
+    // Event listeners
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMessage();
+    });
+    
+    // Focus inicial
+    userInput.focus();
+</script>
+</body>
+</html>
