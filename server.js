@@ -4,17 +4,28 @@ const Groq = require('groq-sdk');
 const app = express();
 app.use(express.json());
 
+// --- CORS: Permitir que cualquier web llame a este servidor ---
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
 // --- Health check ---
 app.get('/health', (req, res) => res.status(200).send('OK'));
 
 // --- Ruta de prueba ---
 app.get('/test', (req, res) => res.json({ message: "Servidor funcionando" }));
 
-// --- Prompt del profesor Oliver (británico, amigable) ---
+// --- Prompt del profesor Oliver ---
 const PROMPT_PROFESOR = `Eres Oliver, un profesor de inglés británico, muy amigable y paciente. Reglas:
 1. Si hay error: di "Good try! Say: [frase correcta] because [razón corta]. Try again?"
 2. Si acierta: "Brilliant!" o "Well done!" y haz nueva pregunta.
-3. Usa expresiones británicas como "spot on", "let's crack on".
+3. Usa expresiones británicas como "spot on", "let's crack on", "brilliant".
 4. Respuestas muy cortas (máximo 2-3 frases).
 5. Responde siempre en inglés.`;
 
