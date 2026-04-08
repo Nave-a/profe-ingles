@@ -3,31 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Professor Oliver - Aprende Inglés Británico</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Oliver - Aprende Inglés de Forma Natural</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
         .hero {
             text-align: center;
             padding: 60px 20px;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: rgba(255,255,255,0.1);
             border-radius: 32px;
+            backdrop-filter: blur(10px);
             color: white;
             margin-bottom: 40px;
         }
+
         .hero h1 {
             font-size: 3rem;
             margin-bottom: 20px;
         }
+
         .hero p {
             font-size: 1.2rem;
             opacity: 0.9;
+            margin-bottom: 30px;
         }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 1.1rem;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #1e3c72;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 30px;
             margin-top: 40px;
         }
+
         .feature-card {
             background: white;
             padding: 30px;
@@ -36,83 +79,125 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             transition: transform 0.2s;
         }
+
         .feature-card:hover {
             transform: translateY(-5px);
         }
+
         .feature-card .emoji {
             font-size: 3rem;
             margin-bottom: 15px;
         }
+
         .feature-card h3 {
             color: #1e3c72;
             margin-bottom: 10px;
         }
-        .cta-buttons {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
+
+        .feature-card p {
+            color: #64748b;
+        }
+
+        .method {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
             margin-top: 40px;
-            flex-wrap: wrap;
         }
-        .btn {
-            padding: 15px 40px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s;
+
+        .method h2 {
+            color: #1e3c72;
+            text-align: center;
+            margin-bottom: 30px;
         }
-        .btn-primary {
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .step {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .step .number {
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
         }
-        .btn-secondary {
-            background: white;
-            color: #1e3c72;
-            border: 2px solid #1e3c72;
-        }
-        .btn:hover {
-            transform: scale(1.05);
-        }
-        @media (max-width: 600px) {
+
+        @media (max-width: 768px) {
             .hero h1 { font-size: 2rem; }
-            .cta-buttons { flex-direction: column; align-items: center; }
-            .btn { text-align: center; }
+            .hero p { font-size: 1rem; }
+            .method { padding: 20px; }
         }
     </style>
 </head>
 <body>
-    <div class="app-container" style="display: block; max-width: 1200px;">
+    <div class="container">
         <div class="hero">
-            <h1>🇬🇧 Professor Oliver 🇬🇧</h1>
-            <p>Your British English tutor with voice recognition and interactive exercises</p>
+            <h1>🌍 Oliver</h1>
+            <p>Aprende inglés de forma natural, sin presión, a tu ritmo</p>
+            <a href="chat.html" class="btn btn-primary">🎯 Comienza Ahora</a>
         </div>
-        
+
         <div class="features">
             <div class="feature-card">
-                <div class="emoji">🎤</div>
-                <h3>Voice Recognition</h3>
-                <p>Speak naturally and Oliver will understand you</p>
-            </div>
-            <div class="feature-card">
-                <div class="emoji">🔊</div>
-                <h3>Speech Output</h3>
-                <p>Oliver responds with authentic British pronunciation</p>
+                <div class="emoji">🗣️</div>
+                <h3>Habla desde el primer día</h3>
+                <p>Empieza en español y avanza al inglés progresivamente</p>
             </div>
             <div class="feature-card">
                 <div class="emoji">📚</div>
-                <h3>Interactive Exercises</h3>
-                <p>Practice with exercises for all levels</p>
+                <h3>Aprende palabras nuevas</h3>
+                <p>Cada palabra que aprendes la usas solo en inglés después</p>
             </div>
             <div class="feature-card">
-                <div class="emoji">🏆</div>
-                <h3>Points System</h3>
-                <p>Earn points and track your progress</p>
+                <div class="emoji">🎤</div>
+                <h3>Reconocimiento de voz</h3>
+                <p>Habla y Oliver te escucha y te ayuda</p>
+            </div>
+            <div class="feature-card">
+                <div class="emoji">🔊</div>
+                <h3>Respuesta con voz</h3>
+                <p>Oliver te responde hablando para que aprendas la pronunciación</p>
             </div>
         </div>
-        
-        <div class="cta-buttons">
-            <a href="chat.html" class="btn btn-primary">💬 Start Conversation</a>
-            <a href="exercises.html" class="btn btn-secondary">📝 Practice Exercises</a>
+
+        <div class="method">
+            <h2>📖 Método de Aprendizaje</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="number">1</div>
+                    <h3>Español</h3>
+                    <p>Oliver empieza hablando español para que te sientas cómodo</p>
+                </div>
+                <div class="step">
+                    <div class="number">2</div>
+                    <h3>Mezcla</h3>
+                    <p>Tú respondes mezclando inglés y español sin miedo</p>
+                </div>
+                <div class="step">
+                    <div class="number">3</div>
+                    <h3>Corrección</h3>
+                    <p>Oliver te ayuda a completar la frase en inglés</p>
+                </div>
+                <div class="step">
+                    <div class="number">4</div>
+                    <h3>Fijación</h3>
+                    <p>Las palabras nuevas se usan solo en inglés de ahora en adelante</p>
+                </div>
+            </div>
         </div>
     </div>
 </body>
