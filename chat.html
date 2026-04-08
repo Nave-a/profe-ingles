@@ -208,18 +208,26 @@
             color: white;
         }
 
-        .reset-button {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 5px;
-            opacity: 0.7;
+        .header-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 8px;
         }
 
-        .reset-button:hover {
-            opacity: 1;
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
 
         @media (max-width: 600px) {
@@ -234,15 +242,19 @@
     <div class="chat-header">
         <h1>🌍 Oliver</h1>
         <p>Habla sin miedo • Aprende a tu ritmo</p>
-        <button class="reset-button" id="resetBtn">🔄 Nueva conversación</button>
+        <div class="header-buttons">
+            <button class="header-btn" id="saveChatBtn">💾 Guardar conversación</button>
+            <button class="header-btn" id="loadChatBtn">📂 Cargar conversación</button>
+            <button class="header-btn" id="resetBtn">🔄 Nueva conversación</button>
+        </div>
     </div>
     <div class="messages-area" id="messagesArea">
         <div class="message bot-message">
             <div class="message-sender">🌍 Oliver</div>
             <div class="message-bubble">
                 ¡Hola! Soy Oliver, tu profesor de inglés.<br><br>
-                Vamos a aprender juntos. No te preocupes por los errores, es parte del proceso.<br><br>
-                Primero, cuéntame: ¿cómo te llamas y de dónde eres?
+                Vamos a aprender de forma natural. No tengas miedo de equivocarte.<br><br>
+                Cuéntame, ¿cómo te llamas y de dónde eres?
             </div>
         </div>
     </div>
@@ -256,6 +268,7 @@
 
 <script>
     const API_URL = 'https://profe-ingles.onrender.com/chat';
+    const STORAGE_KEY = 'oliver_conversation_history';
     
     const messagesArea = document.getElementById('messagesArea');
     const userInput = document.getElementById('userInput');
@@ -263,6 +276,8 @@
     const statusBar = document.getElementById('statusBar');
     const micButton = document.getElementById('micButton');
     const resetBtn = document.getElementById('resetBtn');
+    const saveChatBtn = document.getElementById('saveChatBtn');
+    const loadChatBtn = document.getElementById('loadChatBtn');
     
     let conversationHistory = [];
     let isRecording = false;
@@ -357,7 +372,30 @@
         messageDiv.appendChild(bubble);
         messagesArea.appendChild(messageDiv);
         messagesArea.scrollTop = messagesArea.scrollHeight;
+        
         if (role === 'bot' && !skipSpeak) speak(text);
+    }
+    
+    function loadConversationFromStorage() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            conversationHistory = JSON.parse(saved);
+            messagesArea.innerHTML = '';
+            for (const msg of conversationHistory) {
+                addMessage(msg.role, msg.content, true);
+            }
+            statusBar.textContent = '✅ Conversación cargada';
+            setTimeout(() => { statusBar.textContent = '✅ Listo • Habla sin miedo'; }, 2000);
+        } else {
+            statusBar.textContent = '📭 No hay conversación guardada';
+            setTimeout(() => { statusBar.textContent = '✅ Listo • Habla sin miedo'; }, 2000);
+        }
+    }
+    
+    function saveConversationToStorage() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(conversationHistory));
+        statusBar.textContent = '💾 Conversación guardada';
+        setTimeout(() => { statusBar.textContent = '✅ Listo • Habla sin miedo'; }, 2000);
     }
     
     let typingIndicator = null;
@@ -407,6 +445,10 @@
             addMessage('bot', reply);
             conversationHistory.push({ role: 'assistant', content: reply });
             statusBar.textContent = '✅ Listo • Habla sin miedo';
+            
+            // Auto-guardar después de cada mensaje
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(conversationHistory));
+            
         } catch (error) {
             console.error('Error:', error);
             hideTyping();
@@ -423,17 +465,27 @@
     function resetConversation() {
         conversationHistory = [];
         messagesArea.innerHTML = '';
-        addMessage('bot', '¡Hola! Soy Oliver, tu profesor de inglés. Vamos a aprender juntos. ¿Cómo te llamas y de dónde eres?', true);
+        localStorage.removeItem(STORAGE_KEY);
+        addMessage('bot', '¡Hola! Soy Oliver, tu profesor de inglés. Vamos a aprender de forma natural. No tengas miedo de equivocarte. Cuéntame, ¿cómo te llamas y de dónde eres?', true);
         statusBar.textContent = '✅ Conversación reiniciada';
         setTimeout(() => { statusBar.textContent = '✅ Listo • Habla sin miedo'; }, 2000);
     }
     
+    // ============================================================
+    // INICIALIZACIÓN
+    // ============================================================
+    
     sendBtn.addEventListener('click', sendMessage);
     userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     resetBtn.addEventListener('click', resetConversation);
+    saveChatBtn.addEventListener('click', saveConversationToStorage);
+    loadChatBtn.addEventListener('click', loadConversationFromStorage);
     
     initSpeechRecognition();
     userInput.focus();
+    
+    // Cargar conversación guardada al iniciar
+    loadConversationFromStorage();
 </script>
 </body>
 </html>
